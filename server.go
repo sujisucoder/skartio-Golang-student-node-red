@@ -138,18 +138,26 @@ func getAllUsersHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	defer cursor.Close(ctx)
+
+	var users  []User
+	if err = cursor.All(ctx, &users); err != nil {
+		sendError(w, "Failed to decode users", http.StatusInternalServerError)
+		return
+	}
+
+	if err:= json.NewEncoder(w).Encode(users); err != nil {
+		sendError(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 //delete the user
-
-
 func sendError(w http.ResponseWriter, message string, status int){
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(ErrorResponse{Error: message}); err != nil{
 		log.Printf("Error encoding error response: %v", err)
 	}
-
 }
 
 func loggingMiddleware(next http.Handler) http.Handler  {
